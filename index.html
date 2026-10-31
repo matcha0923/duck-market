@@ -22,7 +22,7 @@ canvas{width:100%;height:150px;display:block}
 input{width:90px;padding:6px;border-radius:8px;border:1px solid var(--l);background:var(--c);color:var(--t);font:inherit}
 .bb{border:0;border-radius:8px;padding:7px 12px;color:#fff}
 #ts{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 14px;border-radius:20px;display:none;z-index:20}
-footer{text-align:center;color:var(--m);font-size:12px;padding:10px 14px 24px}
+footer{text-align:center;color:var(--m);font-size:12px;padding:10px 14px 24px}.kvs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}.kv{background:var(--c);border-radius:8px;padding:6px 8px}.kv b{display:block}.chip{display:inline-block;background:var(--c);border-radius:14px;padding:3px 10px;margin:0 6px 6px 0;cursor:pointer}table{width:100%;border-collapse:collapse}td{padding:3px 4px;border-bottom:1px solid var(--l)}td:not(:first-child){text-align:right}
 </style></head><body>
 <header><b>🦆 鴨市模擬股市</b><div id="clk"></div><div class="sp" id="spd"></div></header>
 <div id="top"></div><nav id="nav"></nav><main id="main"></main>
@@ -37,37 +37,42 @@ const P=["芋泥","蜜柑","星空","銀杏","河豚","松鼠","可可","茉莉"
 const EM=[["⛏️","🔋"],["💻","📡"],["🍱","🥐"],["🏖️","🎡"],["🏦","🏢"],["💊","🌿"],["🚚","🏗️"]];
 const G=["#傳出重大訂單，市場看好後市。","#財報優於預期，執行長笑說「大家都有鴨幣」。","#新產品爆紅，社群一片好評。"],B=["#生產線出現狀況，出貨恐延遲。","#被爆內部管理混亂，投資人憂心。","#財報不如預期，法說會氣氛凝重。"];
 const ETFS=[{k:"ALL",n:"鴨市大盤ETF",e:"🦆",f:c=>1},{k:"TECH",n:"科技創新ETF",e:"💡",f:c=>c.s==1},{k:"LIFE",n:"民生消費ETF",e:"🍱",f:c=>c.s==2||c.s==5},{k:"DIV",n:"高股息ETF",e:"💰",dy:.04},{k:"INFRA",n:"礦能基建ETF",e:"⛏️",f:c=>c.s==0||c.s==6},{k:"FUN",n:"旅遊金融ETF",e:"🎈",f:c=>c.s==3||c.s==4}];
+const SN="陳林黃張李王吳劉蔡楊",GN=["鴨鴨","茶茶","福福","柴柴","波波","嚕嚕"],HQ=["鴨池市","茶香鎮","雲霧山城","月牙灣","大榕村","彩虹港","星砂島","霧凇谷"];
+const BZ=[["原礦開採","儲能電池","地熱與風電","水資源處理","貴金屬精煉"],["雲端服務","半導體設計","機器人","資安軟體","衛星通訊"],["即食麵與罐頭","手搖飲連鎖","寵物食品","紡織服飾","有機農產"],["旅行社","電影院線","遊戲發行","主題樂園","登山露營"],["商業銀行","證券經紀","產險壽險","不動產開發","創業投資"],["新藥研發","連鎖診所","成人教育","長照服務","保健食品"],["航空貨運","海運","冷鏈物流","重型機械","建材"]];
+const mc=x=>x>=1e6?(x/1e6).toFixed(2)+'兆':(x/100).toFixed(1)+'億';
+function ext(c,r){if(c.sh)return;c.sh=Math.round(50+r()*1450);c.emp=100+(r()*r()*30000|0);c.hq=HQ[r()*8|0];c.ceo=SN[r()*10|0]+GN[r()*6|0];c.ch=SN[r()*10|0]+GN[r()*6|0];c.b1=r()*5|0;c.b2=(c.b1+1+(r()*4|0))%5;c.eps=Math.round(c.p/(8+r()*27)*100)/100;c.hi=Math.max(...c.hs);c.lo=Math.min(...c.hs);c.p0=c.p0||c.hs[0];c.dh=c.dh||[]}
 const rng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
 const gauss=r=>Math.sqrt(-2*Math.log(1-r()))*Math.cos(6.2832*r());
 const f2=x=>x.toFixed(2),fm=x=>Math.round(x).toLocaleString('zh-TW'),r2=x=>Math.round(x*100)/100,pc=d=>(d>=0?'+':'')+(d*100).toFixed(2)+'%';
 let S,D=null;
-function mk(id,n,e,s,r){const p=r2(20*Math.exp(r()*2.5));return{id,n,e,s,p,pc:p,vol:.6+r()*1.1,beta:.6+r()*.8,dy:r()<.25?0:r()*(s==4||s==2?.06:.035),f:[1,2,4][r()*3|0],mo:r()*3|0,yr:1985+(r()*38|0),tr:r()*6|0,hs:[p],hu:r()*360|0,alive:1,imp:0}}
-function init(){const r=rng(20270101);S={t:360,acc:0,cash:1e6,hold:{},cs:RAW.split(';').map((x,i)=>{const[n,e,s]=x.split(',');return mk(i,n,e,+s,r)}),ix:1000,ixc:1000,ixh:[1000],etf:{},news:[],log:[],ah:[],slot:0,tk:0,spd:1,tab:'m',last:Date.now()};ETFS.forEach(e=>S.etf[e.k]={v:100,c:100,hs:[100]})}
+function mk(id,n,e,s,r){const p=r2(20*Math.exp(r()*2.5)),c={id,n,e,s,p,pc:p,vol:.6+r()*1.1,beta:.6+r()*.8,dy:r()<.25?0:r()*(s==4||s==2?.06:.035),f:[1,2,4][r()*3|0],mo:r()*3|0,yr:1985+(r()*38|0),tr:r()*6|0,hs:[p],hu:r()*360|0,alive:1,imp:0};ext(c,r);return c}
+function init(){const r=rng(20270101);S={t:360,acc:0,cash:1e6,hold:{},cs:RAW.split(';').map((x,i)=>{const[n,e,s]=x.split(',');return mk(i,n,e,+s,r)}),ix:1000,ixc:1000,ixh:[1000],etf:{},news:[],log:[],dx:[],ah:[],slot:0,tk:0,spd:1,tab:'m',last:Date.now()};ETFS.forEach(e=>S.etf[e.k]={v:100,c:100,hs:[100],dh:[]})}
 function save(){S.last=Date.now();try{localStorage.setItem('duckmkt1',JSON.stringify(S))}catch(e){}}
-function load(){try{const s=localStorage.getItem('duckmkt1');if(s){S=JSON.parse(s);return 1}}catch(e){}return 0}
+function load(){try{const s=localStorage.getItem('duckmkt1');if(s){S=JSON.parse(s);S.dx=S.dx||[];S.cs.forEach(c=>ext(c,rng(c.id*131+7)));ETFS.forEach(e=>{S.etf[e.k].dh=S.etf[e.k].dh||[]});return 1}}catch(e){}return 0}
 const cons=e=>{const a=S.cs.filter(c=>c.alive);return e.k=="DIV"?a.filter(c=>c.dy>0).sort((x,y)=>y.dy-x.dy).slice(0,10):a.filter(e.f)};
 const op=()=>{const m=S.t%1440;return m>=360&&m<1080};
 function tstr(t){const d=new Date(START+t*6e4);return`${d.getUTCFullYear()}/${d.getUTCMonth()+1}/${d.getUTCDate()}（${"日一二三四五六"[d.getUTCDay()]}） ${String(d.getUTCHours()).padStart(2,0)}:${String(d.getUTCMinutes()).padStart(2,0)}`}
-function info(k){if(k[0]=='c'){const c=S.cs[+k.slice(1)];return{n:c.n,e:c.e,hu:c.hu,p:r2(c.p),pc:r2(c.pc),t:c.id+1001+' '+SEC[c.s][0],hs:c.hs,live:c.alive}}const i=ETFS.findIndex(x=>x.k==k.slice(1)),e=ETFS[i],v=S.etf[e.k];return{n:e.n,e:e.e,hu:100+i*40,p:r2(v.v),pc:r2(v.c),t:'ETF '+e.k,hs:v.hs,live:1}}
+function info(k){if(k[0]=='c'){const c=S.cs[+k.slice(1)];return{n:c.n,e:c.e,hu:c.hu,p:r2(c.p),pc:r2(c.pc),t:c.id+1001+' '+SEC[c.s][0]+'・市值'+mc(c.p*c.sh),hs:c.hs,dh:c.dh,p0:c.p0,live:c.alive}}const i=ETFS.findIndex(x=>x.k==k.slice(1)),e=ETFS[i],v=S.etf[e.k];return{n:e.n,e:e.e,hu:100+i*40,p:r2(v.v),pc:r2(v.c),t:'ETF '+e.k,hs:v.hs,dh:v.dh,p0:100,live:1}}
 const total=()=>Object.keys(S.hold).reduce((a,k)=>a+S.hold[k].q*info(k).p,S.cash);
 function addN(h,tag,ts){S.news.unshift({h,tag,ts:ts||Date.now(),g:tstr(S.t)});if(S.news.length>120)S.news.pop()}
 function rec(k,s,q,p,f){S.log.unshift({g:tstr(S.t),k,s,q,p,f});if(S.log.length>200)S.log.pop()}
 function tick(){const m=2.3e-6+9e-4*gauss(Math.random),sr=SEC.map(()=>6e-4*gauss(Math.random)),rt={};let sum=0,n=0;
-for(const c of S.cs){if(!c.alive)continue;const r=c.beta*m+sr[c.s]+c.vol*1.5e-3*gauss(Math.random)+c.imp*.08;c.imp*=.92;c.p=Math.max(.5,c.p*(1+r));rt[c.id]=r;sum+=r;n++}
+for(const c of S.cs){if(!c.alive)continue;const r=c.beta*m+sr[c.s]+c.vol*1.5e-3*gauss(Math.random)+c.imp*.08;c.imp*=.92;c.p=Math.max(.5,c.p*(1+r));if(c.p>c.hi)c.hi=c.p;if(c.p<c.lo)c.lo=c.p;rt[c.id]=r;sum+=r;n++}
 if(n)S.ix*=1+sum/n;
 for(const e of ETFS){const cs=cons(e);if(!cs.length)continue;let s=0;for(const c of cs)s+=rt[c.id];S.etf[e.k].v*=1+s/cs.length}
 if(++S.tk%12==0){const pu=(a,v)=>{a.push(r2(v));if(a.length>300)a.shift()};S.cs.forEach(c=>c.alive&&pu(c.hs,c.p));pu(S.ixh,S.ix);ETFS.forEach(e=>pu(S.etf[e.k].hs,S.etf[e.k].v))}}
-function close(){S.cs.forEach(c=>c.pc=c.p);ETFS.forEach(e=>S.etf[e.k].c=S.etf[e.k].v);S.ixc=S.ix;S.ah.push([S.t,Math.round(total())]);if(S.ah.length>1000)S.ah.shift()}
+function close(){S.cs.forEach(c=>{c.pc=c.p;if(c.alive){c.dh.push([S.t,r2(c.p)]);if(c.dh.length>400)c.dh.shift()}});ETFS.forEach(e=>{const v=S.etf[e.k];v.c=v.v;v.dh.push([S.t,r2(v.v)]);if(v.dh.length>400)v.dh.shift()});S.ixc=S.ix;S.ah.push([S.t,Math.round(total())]);if(S.ah.length>1000)S.ah.shift()}
 function dl(c,k){const f=[0,1.25,1.1][k];ETFS.forEach(e=>{const cs=cons(e);if(cs.includes(c))S.etf[e.k].v*=1+(f-1)/cs.length});S.ix*=1+(f-1)/S.cs.filter(x=>x.alive).length;
-const o=S.hold['c'+c.id];if(o){if(f)S.cash+=o.q*c.p*f;delete S.hold['c'+c.id]}c.alive=0;c.dk=k;
+const o=S.hold['c'+c.id];if(o){if(f)S.cash+=o.q*c.p*f;S.dx.unshift({id:c.id,q:o.q,c:o.c,k,v:o.q*c.p*f,g:tstr(S.t)});rec('c'+c.id,'退',o.q,c.p*f,0);delete S.hold['c'+c.id]}c.alive=0;c.dk=k;
 addN([`${c.e}${c.n}宣告破產下市，股票歸零。`,`${c.e}${c.n}被大企業收購下市，持股以溢價25%現金收購。`,`${c.e}${c.n}決定私有化下市，持股以溢價10%現金收購。`][k],'公告')}
-function ipo(){const s=Math.random()*7|0;let n;do n=P[Math.random()*P.length|0]+Q[s];while(S.cs.some(c=>c.n==n));const c=mk(S.cs.length,n,EM[s][Math.random()*2|0],s,Math.random);c.p=c.pc=r2(15+Math.random()*65);c.hs=[c.p];S.cs.push(c);addN(`新上市！${c.e}${n}（${c.id+1001}）今日掛牌，首日價 ${f2(c.p)}。`,'公告')}
+function ipo(){const s=Math.random()*7|0;let n;do n=P[Math.random()*P.length|0]+Q[s];while(S.cs.some(c=>c.n==n));const c=mk(S.cs.length,n,EM[s][Math.random()*2|0],s,Math.random);c.p=c.pc=r2(15+Math.random()*65);c.hs=[c.p];c.p0=c.hi=c.lo=c.p;c.ld=S.t;c.eps=r2(c.p/(8+Math.random()*27));S.cs.push(c);addN(`新上市！${c.e}${n}（${c.id+1001}）今日掛牌，首日價 ${f2(c.p)}。`,'公告')}
 function day(){const d=new Date(START+S.t*6e4),mo=d.getUTCMonth(),dd=d.getUTCDate(),al=S.cs.filter(c=>c.alive);
+if(mo==0&&dd==1)al.forEach(c=>c.eps=r2(c.eps*(1.02+Math.random()*.14)));
 if(dd==15)al.forEach(c=>{if(c.dy&&mo%(12/c.f)==c.mo){const a=c.p*c.dy/c.f,o=S.hold['c'+c.id];c.p-=a;c.pc-=a;if(o){S.cash+=o.q*a;rec('c'+c.id,'息',o.q,a,0)}}});
 if(dd==20&&mo%3==2){const v=S.etf.DIV,a=v.v*.01,o=S.hold.eDIV;v.v-=a;v.c-=a;if(o){S.cash+=o.q*a;rec('eDIV','息',o.q,a,0)}}
 if(al.length>38&&Math.random()<al.length*9e-5)dl(al[Math.random()*al.length|0],Math.random()<.7?0:Math.random()<.67?1:2);
 if(al.length<56&&Math.random()<.005)ipo();
-const dd2=S.cs.filter(c=>!c.alive&&c.dk==0);if(dd2.length&&Math.random()<.004){const c=dd2[Math.random()*dd2.length|0];c.alive=1;c.p=c.pc=r2(5+Math.random()*20);c.hs=[c.p];c.imp=0;addN(`${c.e}${c.n}完成重整，重新上市！（先前破產時的持股仍已歸零）`,'公告')}}
+const dd2=S.cs.filter(c=>!c.alive&&c.dk==0);if(dd2.length&&Math.random()<.004){const c=dd2[Math.random()*dd2.length|0];c.alive=1;c.p=c.pc=r2(5+Math.random()*20);c.hs=[c.p];c.imp=0;c.p0=c.hi=c.lo=c.p;c.ld=S.t;c.eps=r2(c.p/(8+Math.random()*27));addN(`${c.e}${c.n}完成重整，重新上市！（先前破產時的持股仍已歸零）`,'公告')}}
 function step(){S.t+=5;const m=S.t%1440;if(m>360&&m<=1080)tick();if(m==1080)close();if(m==0)day()}
 function adv(mx){let n=0;while(S.acc>=5&&n++<mx)S.acc-=5,step()}
 function catchUp(){const g=(Date.now()-S.last)/6e4;if(g>0){S.acc+=Math.min(g,86400);adv(30000)}S.last=Date.now()}
@@ -83,24 +88,36 @@ const ts=m=>{const e=$('#ts');e.textContent=m;e.style.display='block';clearTimeo
 const lg=(e,h)=>`<span class="lg" style="background:hsl(${h} 70% 88%);border-color:hsl(${h} 50% 55%)">${e}</span>`;
 function row(k,x){const i=info(k),d=i.p/i.pc-1;return`<div class="row" onpointerdown="od('${k}')">${lg(i.e,i.hu)}<div class="g"><b>${i.n}</b><br><small>${x||i.t}</small></div><div class="r"><b>${f2(i.p)}</b><small class="${d>=0?'u':'d'}">${pc(d)}</small></div></div>`}
 function chart(cv,a,up){if(!cv)return;const x=cv.getContext('2d'),w=cv.width=cv.clientWidth*2,h=cv.height=cv.clientHeight*2;if(a.length<2)return;const mn=Math.min(...a),mx=Math.max(...a),d=mx-mn||1;x.strokeStyle=up?'#d93025':'#188038';x.lineWidth=3;x.beginPath();a.forEach((v,i)=>{const X=i/(a.length-1)*w,Y=h-24-(v-mn)/d*(h-48);i?x.lineTo(X,Y):x.moveTo(X,Y)});x.stroke();x.fillStyle='#889';x.font='20px sans-serif';x.fillText(f2(mx),4,18);x.fillText(f2(mn),4,h-4)}
+const KL=['破產歸零','被收購','私有化'];
+function dch(a){return S.cs.filter(c=>!c.alive&&(a||!S.dx.some(r=>r.id==c.id))).map(c=>`<span class="chip" onpointerdown="od('c${c.id}')">${c.e}${c.n}</span>`).join('')}
+function dxh(){const ch=dch(0);if(!S.dx.length&&!ch)return'<p><b>已下市</b></p><p><small>目前沒有已下市紀錄。</small></p>';return'<p><b>已下市</b></p>'+S.dx.map(r=>{const c=S.cs[r.id];return`<div class="row" onpointerdown="od('c${r.id}')">${lg(c.e,c.hu)}<div class="g"><b>${c.n}</b><br><small>${r.g.split('（')[0]}・${KL[r.k]}${c.alive?'（已重新上市）':''}・${r.q}股</small></div><div class="r"><b>${r.v?fm(r.v):'歸零'}</b><small class="${r.v>=r.c?'u':'d'}">${r.v>=r.c?'+':''}${fm(r.v-r.c)}</small></div></div>`}).join('')+(ch?'<p><small>其他已下市公司</small></p>'+ch:'')}
 function rm(){const T=S.tab,M=$('#main');let h='',ch=null;
-if(T=='m'){const d=S.ix/S.ixc-1;h=`<div class="card"><b>鴨市大盤指數</b>（不可交易） <b class="${d>=0?'u':'d'}">${f2(S.ix)} ${pc(d)}</b><canvas id="ic"></canvas></div>`+S.cs.filter(c=>c.alive).map(c=>row('c'+c.id)).join('');const dd=S.cs.filter(c=>!c.alive);if(dd.length)h+=`<p><small>已下市：${dd.map(c=>c.n+(c.dk?'（收購）':'（破產，可能重整）')).join('、')}</small></p>`;ch=[S.ixh.concat(S.ix),d>=0]}
-else if(T=='h'){const ks=Object.keys(S.hold);h=ks.length?ks.map(k=>{const i=info(k),o=S.hold[k],v=o.q*i.p,pl=v-o.c;return row(k,`${o.q}股・均價${f2(o.c/o.q)}`).replace(/<div class="r">.*?<\/div><\/div>$/,`<div class="r"><b>${fm(v)}</b><small class="${pl>=0?'u':'d'}">${pl>=0?'+':''}${fm(pl)} (${(pl/o.c*100).toFixed(1)}%)</small></div></div>`)}).join(''):'<p><small>還沒有持股，去市場逛逛吧！</small></p>'}
+if(T=='m'){const d=S.ix/S.ixc-1;h=`<div class="card"><b>鴨市大盤指數</b>（不可交易） <b class="${d>=0?'u':'d'}">${f2(S.ix)} ${pc(d)}</b><canvas id="ic"></canvas></div>`+S.cs.filter(c=>c.alive).map(c=>row('c'+c.id)).join('');if(S.cs.some(c=>!c.alive))h+='<p><small>已下市（點擊查看歷史）</small></p>'+dch(1);ch=[S.ixh.concat(S.ix),d>=0]}
+else if(T=='h'){const ks=Object.keys(S.hold);h=ks.length?ks.map(k=>{const i=info(k),o=S.hold[k],v=o.q*i.p,pl=v-o.c;return row(k,`${o.q}股・均價${f2(o.c/o.q)}`).replace(/<div class="r">.*?<\/div><\/div>$/,`<div class="r"><b>${fm(v)}</b><small class="${pl>=0?'u':'d'}">${pl>=0?'+':''}${fm(pl)} (${(pl/o.c*100).toFixed(1)}%)</small></div></div>`)}).join(''):'<p><small>還沒有持股，去市場逛逛吧！</small></p>';h+=dxh()}
 else if(T=='e')h=ETFS.map(e=>row('e'+e.k,`成分股 ${cons(e).length} 檔`)).join('');
 else if(T=='n')h=S.news.map(n=>`<div class="card"><small>${n.tag}・現實 ${new Date(n.ts).toLocaleString('zh-TW',{hour12:false})}</small><br>${n.h}</div>`).join('')||'<p><small>目前沒有新聞。</small></p>';
 else if(T=='a'){const tv=total();h=`<div class="card"><b>總資產歷史（每日收盤）</b><canvas id="ac"></canvas><small>起始 1,000,000　目前 ${fm(tv)}（${pc(tv/1e6-1)}）</small></div><button onclick="if(confirm('確定重置所有進度？')){localStorage.removeItem('duckmkt1');location.reload()}">重置遊戲</button>`;const a=S.ah.map(x=>x[1]);a.unshift(1e6);a.push(tv);ch=[a,tv>=1e6]}
-else h=S.log.map(l=>{const i=info(l.k);return`<div class="card"><small>${l.g}</small><br>${l.s=='息'?'配息':l.s=='買'?'買進':'賣出'} <b>${i.n}</b> ${l.q}股 @ ${f2(l.p)}${l.f?`（費用 ${f2(l.f)}）`:''}</div>`}).join('')||'<p><small>還沒有交易紀錄。</small></p>';
+else h=S.log.map(l=>{const i=info(l.k);return`<div class="card"><small>${l.g}</small><br>${l.s=='息'?'配息':l.s=='退'?'下市結算':l.s=='買'?'買進':'賣出'} <b>${i.n}</b> ${l.q}股 @ ${f2(l.p)}${l.f?`（費用 ${f2(l.f)}）`:''}</div>`}).join('')||'<p><small>還沒有交易紀錄。</small></p>';
 if(M.dataset.h!=h){M.innerHTML=h;M.dataset.h=h}
 if(ch)chart($('#ic')||$('#ac'),ch[0],ch[1])}
 function nav(){$('#nav').innerHTML=[["m","市場"],["h","持股"],["e","ETF"],["n","新聞"],["a","資產"],["l","紀錄"]].map(t=>`<button class="${S.tab==t[0]?'on':''}" onclick="S.tab='${t[0]}';nav();$('#main').dataset.h='';rm()">${t[1]}</button>`).join('')}
 function spb(){$('#spd').innerHTML=SPD.map(s=>`<button class="${S.spd==s?'on':''}" onclick="S.spd=${s};spb()">${s?s+'×':'⏸'}</button>`).join('')}
 function ui(){checkNews();const tv=total(),d=S.ix/S.ixc-1;$('#clk').textContent=tstr(S.t+Math.floor(S.acc))+(op()?' 🟢開盤':' 🔴休市（06:00–18:00交易）');
 $('#top').innerHTML=`<div><small>總資產（鴨幣）</small><br><b>${fm(tv)}</b> <small class="${tv>=1e6?'u':'d'}">${tv>=1e6?'+':''}${fm(tv-1e6)}</small></div><div><small>現金</small><br><b>${fm(S.cash)}</b></div><div><small>大盤指數</small><br><b>${f2(S.ix)}</b> <small class="${d>=0?'u':'d'}">${pc(d)}</small></div>`;rm();updD()}
-function od(k){D=k;const i=info(k);let x;if(k[0]=='c'){const c=S.cs[+k.slice(1)];x=`${c.n}是一間虛構的${SEC[c.s][1]}公司，成立於${c.yr}年。${TR[c.tr]}<br>${c.dy?`配息：每年${c.f}次，年化殖利率約 ${(c.dy*100).toFixed(1)}%（現金股息，除息日股價會下調）`:'不配息，盈餘全部拿去再投資。'}`}
-else{const e=ETFS.find(z=>z.k==k.slice(1));x=`${e.n}：${e.k=='DIV'?'追蹤配息最高的10間公司，':''}成分股等權重持有，公司上市／下市時自動調整。${e.dy?'每季配息。':''}<br><small>目前成分：${cons(e).map(c=>c.e+c.n).join('、')}</small>`}
-$('#modal').hidden=0;$('#modal').innerHTML=`<div class="box"><button class="x" onclick="cl()">✕</button><div style="display:flex;gap:10px;align-items:center">${lg(i.e,i.hu)}<div><b style="font-size:17px">${i.n}</b><br><small>${i.t}</small></div></div><p style="font-size:22px;margin:8px 0 0"><b id="dp"></b> <small id="dc"></small></p><canvas id="dcv"></canvas><p>${x}</p><div class="card"><div id="di"></div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"><input id="qq" type="number" min="1" value="10"><button class="bb" style="background:#d93025" onclick="bt('${k}',1)">買進</button><button class="bb" style="background:#188038" onclick="bt('${k}',0)">賣出</button><button class="bb" style="background:#667" onclick="sa('${k}')">全部賣出</button></div><small>手續費 0.12%；賣出另收交易稅（個股0.2%／ETF 0.1%）</small></div></div>`;updD()}
+let DR=0;
+const kv=a=>a.map(z=>`<div class="kv"><small>${z[0]}</small><b>${z[1]}</b></div>`).join('');
+function drb(){$('#dr').innerHTML=['近期','近30日','全部日線'].map((t,j)=>`<button class="${DR==j?'on':''}" onclick="DR=${j};drb();updD()">${t}</button>`).join('')}
+function od(k){D=k;DR=0;const i=info(k);let x;
+if(k[0]=='c'){const c=S.cs[+k.slice(1)];x=`<div class="kvs">${kv([['市值',mc(c.p*c.sh)],['流通股數',fm(c.sh)+' 百萬股'],['每股盈餘 EPS',f2(c.eps)],['本益比 PE',c.eps>0?(c.p/c.eps).toFixed(1):'—'],['殖利率',c.dy?(c.dy*100).toFixed(1)+'%・'+c.f+'次/年':'不配息'],['歷史最高/最低',f2(c.hi)+' / '+f2(c.lo)],['員工數',fm(c.emp)+' 人'],['總部',c.hq],['董事長',c.ch],['執行長',c.ceo],['上市',c.ld?tstr(c.ld).split('（')[0]:'遊戲開始前'],['波動',c.vol>1.3?'高':c.vol>.9?'中':'低']])}</div><p>${c.n}是一間虛構的${SEC[c.s][1]}公司，成立於${c.yr}年，總部位於${c.hq}，主要業務為${BZ[c.s][c.b1]}與${BZ[c.s][c.b2]}。${TR[c.tr]}${c.alive?'':'<br><b>此公司已下市（'+(c.dk?'被收購':'破產')+'）。</b>'}</p>`}
+else{const e=ETFS.find(z=>z.k==k.slice(1)),cs=cons(e);x=`<div class="kvs">${kv([['成分股數',cs.length+' 檔'],['成分市值合計',mc(cs.reduce((a,c)=>a+c.p*c.sh,0))],['配息',e.dy?'每季一次，年化約4%':'不配息'],['權重','等權重']])}</div><p>${e.n}：${e.k=='DIV'?'追蹤配息最高的10間公司，':''}公司上市／下市時自動調整成分。</p><p><small>目前成分：${cs.map(c=>c.e+c.n).join('、')}</small></p>`}
+$('#modal').hidden=0;$('#modal').innerHTML=`<div class="box"><button class="x" onclick="cl()">✕</button><div style="display:flex;gap:10px;align-items:center">${lg(i.e,i.hu)}<div><b style="font-size:17px">${i.n}</b><br><small>${i.t}</small></div></div><p style="font-size:22px;margin:8px 0 0"><b id="dp"></b> <small id="dc"></small></p><div class="sp" id="dr" style="margin:6px 0"></div><canvas id="dcv"></canvas><div class="kvs" id="pp" style="grid-template-columns:repeat(3,1fr)"></div>${x}<div class="card"><div id="di"></div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"><input id="qq" type="number" min="1" value="10"><button class="bb" style="background:#d93025" onclick="bt('${k}',1)">買進</button><button class="bb" style="background:#188038" onclick="bt('${k}',0)">賣出</button><button class="bb" style="background:#667" onclick="sa('${k}')">全部賣出</button></div><small>手續費 0.12%；賣出另收交易稅（個股0.2%／ETF 0.1%）</small></div><p style="margin:10px 0 4px"><b>歷史每日收盤</b></p><div id="dt" style="max-height:200px;overflow:auto"></div></div>`;drb();updD()}
 function cl(){D=null;$('#modal').hidden=1}
-function updD(){if(!D)return;const i=info(D),d=i.p/i.pc-1,o=S.hold[D];$('#dp').textContent=f2(i.p);$('#dc').textContent=pc(d);$('#dc').className=d>=0?'u':'d';chart($('#dcv'),i.hs.slice(-120).concat(i.p),d>=0);
+function updD(){if(!D)return;const i=info(D),d=i.p/i.pc-1,o=S.hold[D],dh=i.dh,z=dh.map(q=>q[1]);
+$('#dp').textContent=f2(i.p);$('#dc').textContent=pc(d);$('#dc').className=d>=0?'u':'d';
+const a=DR==0?i.hs.slice(-120).concat(i.p):DR==1?z.slice(-30).concat(i.p):z.concat(i.p);chart($('#dcv'),a,a[a.length-1]>=a[0]);
+const pp=n=>z.length>=n?pc(i.p/z[z.length-n]-1):'—';
+$('#pp').innerHTML=[['近7日',pp(7)],['近30日',pp(30)],['上市以來',pc(i.p/i.p0-1)]].map(q=>`<div class="kv"><small>${q[0]}</small><b class="${q[1][0]=='+'?'u':q[1][0]=='-'?'d':''}">${q[1]}</b></div>`).join('');
+const t=$('#dt');if(t.dataset.n!=dh.length){t.dataset.n=dh.length;let h='';for(let j=dh.length-1;j>=Math.max(0,dh.length-30);j--){const c=j?dh[j][1]/dh[j-1][1]-1:null;h+=`<tr><td>${tstr(dh[j][0]).split('（')[0]}</td><td>${f2(dh[j][1])}</td><td class="${c>=0?'u':'d'}">${c==null?'—':pc(c)}</td></tr>`}t.innerHTML=h?`<table>${h}</table>`:'<small>尚無日線資料（每天 18:00 收盤後記錄）</small>'}
 $('#di').innerHTML=(i.live?'':'<b>已下市，無法交易</b><br>')+(op()?'🟢 開盤中':'🔴 休市中')+`　現金 ${fm(S.cash)}<br>`+(o?`持有 ${o.q} 股・均價 ${f2(o.c/o.q)}・損益 <b class="${o.q*i.p>=o.c?'u':'d'}">${fm(o.q*i.p-o.c)}</b>`:'尚未持有')}
 function sa(k){$('#qq').value=S.hold[k]?S.hold[k].q:0;bt(k,0)}
 function bt(k,buy){const i=info(k);if(!i.live)return ts('已下市，無法交易');if(!op())return ts('休市中，每天 06:00–18:00 才能交易');const q=Math.floor(+$('#qq').value);if(!(q>0))return ts('請輸入股數');const p=i.p,etf=k[0]=='e';
