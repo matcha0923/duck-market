@@ -22,7 +22,7 @@ canvas{width:100%;height:150px;display:block}
 input{width:90px;padding:6px;border-radius:8px;border:1px solid var(--l);background:var(--c);color:var(--t);font:inherit}
 .bb{border:0;border-radius:8px;padding:7px 12px;color:#fff}
 #ts{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 14px;border-radius:20px;display:none;z-index:20}
-footer{text-align:center;color:var(--m);font-size:12px;padding:10px 14px 24px}.kvs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}.kv{background:var(--c);border-radius:8px;padding:6px 8px}.kv b{display:block}.chip{display:inline-block;background:var(--c);border-radius:14px;padding:3px 10px;margin:0 6px 6px 0;cursor:pointer}table{width:100%;border-collapse:collapse}td{padding:3px 4px;border-bottom:1px solid var(--l)}td:not(:first-child){text-align:right}
+footer{text-align:center;color:var(--m);font-size:12px;padding:10px 14px 24px}.kvs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}.kv{background:var(--c);border-radius:8px;padding:6px 8px}.kv b{display:block}.chip{display:inline-block;background:var(--c);border-radius:14px;padding:3px 10px;margin:0 6px 6px 0;cursor:pointer}.bks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.bk{border-radius:10px;padding:10px;cursor:pointer;line-height:1.6}.bk b:last-child{font-size:17px}table{width:100%;border-collapse:collapse}td{padding:3px 4px;border-bottom:1px solid var(--l)}td:not(:first-child){text-align:right}
 </style></head><body>
 <header><b>🦆 鴨市模擬股市</b><div id="clk"></div><div class="sp" id="spd"></div></header>
 <div id="top"></div><nav id="nav"></nav><main id="main"></main>
@@ -48,7 +48,7 @@ let S,D=null;
 function mk(id,n,e,s,r){const p=r2(20*Math.exp(r()*2.5)),c={id,n,e,s,p,pc:p,vol:.6+r()*1.1,beta:.6+r()*.8,dy:r()<.25?0:r()*(s==4||s==2?.06:.035),f:[1,2,4][r()*3|0],mo:r()*3|0,yr:1985+(r()*38|0),tr:r()*6|0,hs:[p],hu:r()*360|0,alive:1,imp:0};ext(c,r);return c}
 function init(){const r=rng(20270101);S={t:360,acc:0,cash:1e6,hold:{},cs:RAW.split(';').map((x,i)=>{const[n,e,s]=x.split(',');return mk(i,n,e,+s,r)}),ix:1000,ixc:1000,ixh:[1000],etf:{},news:[],log:[],dx:[],ah:[],slot:0,sv:2,tk:0,spd:1,tab:'m',last:Date.now()};ETFS.forEach(e=>S.etf[e.k]={v:100,c:100,hs:[100],dh:[]})}
 function save(){S.last=Date.now();try{localStorage.setItem('duckmkt1',JSON.stringify(S))}catch(e){}}
-function load(){try{const s=localStorage.getItem('duckmkt1');if(s){S=JSON.parse(s);S.dx=S.dx||[];if(S.sv!=2){S.slot=0;S.sv=2}S.cs.forEach(c=>ext(c,rng(c.id*131+7)));ETFS.forEach(e=>{const v=S.etf[e.k]||(S.etf[e.k]={v:100,c:100,hs:[100],dh:[]});v.dh=v.dh||[]});return 1}}catch(e){}return 0}
+function load(){try{const s=localStorage.getItem('duckmkt1');if(s){S=JSON.parse(s);S.dx=S.dx||[];if(S.tab=='e')S.tab='m';if(S.sv!=2){S.slot=0;S.sv=2}S.cs.forEach(c=>ext(c,rng(c.id*131+7)));ETFS.forEach(e=>{const v=S.etf[e.k]||(S.etf[e.k]={v:100,c:100,hs:[100],dh:[]});v.dh=v.dh||[]});return 1}}catch(e){}return 0}
 const cons=e=>{const a=S.cs.filter(c=>c.alive),b=a.filter(c=>!c.m);return e.k=="DIV"?b.filter(c=>c.dy>0).sort((x,y)=>y.dy-x.dy).slice(0,10):e.k=="ALL"?a:e.k=="OTC"?a.filter(c=>c.m):b.filter(e.f)};
 const op=()=>{const m=S.t%1440;return m>=360&&m<1080};
 function tstr(t){const d=new Date(START+t*6e4);return`${d.getUTCFullYear()}/${d.getUTCMonth()+1}/${d.getUTCDate()}（${"日一二三四五六"[d.getUTCDay()]}） ${String(d.getUTCHours()).padStart(2,0)}:${String(d.getUTCMinutes()).padStart(2,0)}`}
@@ -94,21 +94,38 @@ if(S.slot&&S.slot+1<cur-3)addN('你離線太久，僅顯示最近四則新聞，
 for(let s=f;s<=cur;s++){const n=mkNews(s);addN(n[0],n[1],s*72e5)}S.slot=cur}
 const ts=m=>{const e=$('#ts');e.textContent=m;e.style.display='block';clearTimeout(ts.t);ts.t=setTimeout(()=>e.style.display='none',1800)};
 const lg=(e,h)=>`<span class="lg" style="background:hsl(${h} 70% 88%);border-color:hsl(${h} 50% 55%)">${e}</span>`;
-function row(k,x){const i=info(k),d=i.p/i.pc-1;return`<div class="row" onpointerdown="od('${k}')">${lg(i.e,i.hu)}<div class="g"><b>${i.n}</b><br><small>${x||i.t}</small></div><div class="r"><b>${f2(i.p)}</b><small class="${d>=0?'u':'d'}">${pc(d)}</small></div></div>`}
+function row(k,x){const i=info(k),d=i.p/i.pc-1;return`<div class="row" onpointerdown="od('${k}')">${lg(i.e,i.hu)}<div class="g"><b>${i.n}</b><br><small>${(x||i.t)+(i.live?'':'・已下市')}</small></div><div class="r"><b>${f2(i.p)}</b><small class="${d>=0?'u':'d'}">${pc(d)}</small></div></div>`}
 function chart(cv,a,up){if(!cv)return;const x=cv.getContext('2d'),w=cv.width=cv.clientWidth*2,h=cv.height=cv.clientHeight*2;if(a.length<2)return;const mn=Math.min(...a),mx=Math.max(...a),d=mx-mn||1;x.strokeStyle=up?'#d93025':'#188038';x.lineWidth=3;x.beginPath();a.forEach((v,i)=>{const X=i/(a.length-1)*w,Y=h-24-(v-mn)/d*(h-48);i?x.lineTo(X,Y):x.moveTo(X,Y)});x.stroke();x.fillStyle='#889';x.font='20px sans-serif';x.fillText(f2(mx),4,18);x.fillText(f2(mn),4,h-4)}
 const KL=['破產歸零','被收購','私有化'];
 function dch(a){return S.cs.filter(c=>!c.alive&&(a||!S.dx.some(r=>r.id==c.id))).map(c=>`<span class="chip" onpointerdown="od('c${c.id}')">${c.e}${c.n}</span>`).join('')}
 function dxh(){const ch=dch(0);if(!S.dx.length&&!ch)return'<p><b>已下市</b></p><p><small>目前沒有已下市紀錄。</small></p>';return'<p><b>已下市</b></p>'+S.dx.map(r=>{const c=S.cs[r.id];return`<div class="row" onpointerdown="od('c${r.id}')">${lg(c.e,c.hu)}<div class="g"><b>${c.n}</b><br><small>${r.g.split('（')[0]}・${KL[r.k]}${c.alive?'（已重新上市）':''}・${r.q}股</small></div><div class="r"><b>${r.v?fm(r.v):'歸零'}</b><small class="${r.v>=r.c?'u':'d'}">${r.v>=r.c?'+':''}${fm(r.v-r.c)}</small></div></div>`}).join('')+(ch?'<p><small>其他已下市公司</small></p>'+ch:'')}
-function rm(){const T=S.tab,M=$('#main');let h='',ch=null;
+let MM='q',SB=null,SO='c',QV='';
+function mtb(){$('#mt').innerHTML=[['q','代碼查詢'],['b','板塊']].map(z=>`<button class="${MM==z[0]?'on':''}" onclick="MM='${z[0]}';SB=null;mtb();mqb();rm()">${z[1]}</button>`).join('')}
+function mqb(){$('#mq').innerHTML=MM=='q'?'<input id="qi" placeholder="輸入代碼（如1001）或公司名稱" style="width:100%;margin:8px 0" oninput="QV=this.value;rm()" value="'+QV.replace(/"/g,'')+'">':''}
+function qres(){const q=QV.trim();if(!q)return'<p><small>輸入四位數代碼（如 1001）、公司名稱的一部分，或 ETF 代碼（如 ALL、TECH）。</small></p>';const u=q.toUpperCase();
+const ex=S.cs.find(c=>String(c.id+1001)==q),ee=ETFS.find(e=>e.k==u);if(ex)return row('c'+ex.id);if(ee)return row('e'+ee.k);
+const ks=[];S.cs.forEach(c=>{if(String(c.id+1001).startsWith(q)||c.n.includes(q))ks.push('c'+c.id)});ETFS.forEach(e=>{if(e.n.includes(q)||e.k.includes(u))ks.push('e'+e.k)});
+return ks.length?ks.slice(0,8).map(k=>row(k)).join('')+(ks.length>8?'<p><small>僅顯示前8筆，請輸入更完整的內容。</small></p>':''):'<p><small>找不到符合的股票。</small></p>'}
+function blks(){const al=S.cs.filter(c=>c.alive),mb=al.filter(c=>!c.m),em=['⛏️','💻','🍱','🎡','🏦','💊','🚚'];const B=SEC.map((s,i)=>({k:'s'+i,n:s[0],e:em[i],ks:mb.filter(c=>c.s==i).map(c=>'c'+c.id)}));
+B.push({k:'o',n:'上櫃',e:'🌱',ks:al.filter(c=>c.m).map(c=>'c'+c.id)},{k:'e',n:'ETF',e:'📦',ks:ETFS.map(e=>'e'+e.k)},{k:'d',n:'已下市',e:'🪦',nt:1,ks:S.cs.filter(c=>!c.alive).map(c=>'c'+c.id)});return B}
+function bres(){const B=blks();if(!SB)return'<div class="bks">'+B.map(b=>{const n=b.ks.length,d=n&&!b.nt?b.ks.reduce((a,k)=>{const i=info(k);return a+i.p/i.pc-1},0)/n:null;
+return`<div class="bk" style="background:${d==null?'var(--c)':d>=0?'rgba(217,48,37,.14)':'rgba(24,128,56,.14)'}" onpointerdown="SB='${b.k}';rm()"><b>${b.e} ${b.n}</b><br><small>${n} 檔</small><br><b class="${d==null?'':d>=0?'u':'d'}">${d==null?'—':pc(d)}</b></div>`}).join('')+'</div>';
+const b=B.find(x=>x.k==SB)||B[0],cap=k=>k[0]=='c'?S.cs[+k.slice(1)].p*S.cs[+k.slice(1)].sh:cons(ETFS.find(e=>e.k==k.slice(1))).reduce((a,c)=>a+c.p*c.sh,0);
+const sv=k=>{const i=info(k);return SO=='p'?-(i.p/i.pc-1):SO=='m'?-cap(k):(k[0]=='c'?+k.slice(1):1e6+ETFS.findIndex(e=>e.k==k.slice(1)))},ks=b.ks.slice().sort((x,y)=>sv(x)-sv(y));
+return`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0"><button class="bb" style="background:var(--ac)" onpointerdown="SB=null;rm()">← 返回</button><b>${b.e} ${b.n}</b><small>${ks.length} 檔</small></div><div class="sp" style="margin-bottom:8px">${[['c','代碼'],['p','漲跌幅'],['m','市值']].map(z=>`<button class="${SO==z[0]?'on':''}" onpointerdown="SO='${z[0]}';rm()">${z[1]}</button>`).join('')}</div>`+(ks.map(k=>row(k)).join('')||'<p><small>這個板塊目前沒有公司。</small></p>')}
+function rmM(M){if(M.dataset.h!='M'){M.innerHTML='<div id="ix"></div><div class="sp" id="mt"></div><div id="mq"></div><div id="mr"></div>';M.dataset.h='M';mtb();mqb()}
+const d=S.ix/S.ixc-1;$('#ix').innerHTML=`<div class="card"><b>上市大盤指數</b>（不可交易） <b class="${d>=0?'u':'d'}">${f2(S.ix)} ${pc(d)}</b><canvas id="ic"></canvas></div>`;chart($('#ic'),S.ixh.concat(S.ix),d>=0);
+const h=MM=='q'?qres():bres(),r=$('#mr');if(r.dataset.h!=h){r.innerHTML=h;r.dataset.h=h}}
+function rm(){const T=S.tab,M=$('#main');if(T=='m')return rmM(M);let h='',ch=null;
 if(T=='m'){const d=S.ix/S.ixc-1;h=`<div class="card"><b>上市大盤指數</b>（不可交易） <b class="${d>=0?'u':'d'}">${f2(S.ix)} ${pc(d)}</b><canvas id="ic"></canvas></div>`+S.cs.filter(c=>c.alive&&!c.m).map(c=>row('c'+c.id)).join('')+(S.cs.some(c=>c.alive&&c.m)?'<p><b>上櫃</b> <small>波動大、下市風險高，有機會升級上市</small></p>'+S.cs.filter(c=>c.alive&&c.m).map(c=>row('c'+c.id)).join(''):'');if(S.cs.some(c=>!c.alive))h+='<p><small>已下市（點擊查看歷史）</small></p>'+dch(1);ch=[S.ixh.concat(S.ix),d>=0]}
 else if(T=='h'){const ks=Object.keys(S.hold);h=ks.length?ks.map(k=>{const i=info(k),o=S.hold[k],v=o.q*i.p,pl=v-o.c;return row(k,`${o.q}股・均價${f2(o.c/o.q)}`).replace(/<div class="r">.*?<\/div><\/div>$/,`<div class="r"><b>${fm(v)}</b><small class="${pl>=0?'u':'d'}">${pl>=0?'+':''}${fm(pl)} (${(pl/o.c*100).toFixed(1)}%)</small></div></div>`)}).join(''):'<p><small>還沒有持股，去市場逛逛吧！</small></p>';h+=dxh()}
 else if(T=='e')h=ETFS.map(e=>row('e'+e.k,`成分股 ${cons(e).length} 檔`)).join('');
-else if(T=='n')h=S.news.map(n=>`<div class="card"><small>${n.tag}・現實 ${new Date(n.ts).toLocaleString('zh-TW',{hour12:false})}</small><br>${n.h}</div>`).join('')||'<p><small>目前沒有新聞。</small></p>';
+else if(T=='n')h=S.news.map(n=>`<div class="card"><small>${n.tag}・${n.g}</small><br>${n.h}</div>`).join('')||'<p><small>目前沒有新聞。</small></p>';
 else if(T=='a'){const tv=total();h=`<div class="card"><b>總資產歷史（每日收盤）</b><canvas id="ac"></canvas><small>起始 1,000,000　目前 ${fm(tv)}（${pc(tv/1e6-1)}）</small></div><button onclick="if(confirm('確定重置所有進度？')){localStorage.removeItem('duckmkt1');location.reload()}">重置遊戲</button>`;const a=S.ah.map(x=>x[1]);a.unshift(1e6);a.push(tv);ch=[a,tv>=1e6]}
 else h=S.log.map(l=>{const i=info(l.k);return`<div class="card"><small>${l.g}</small><br>${l.s=='息'?'配息':l.s=='退'?'下市結算':l.s=='買'?'買進':'賣出'} <b>${i.n}</b> ${l.q}股 @ ${f2(l.p)}${l.f?`（費用 ${f2(l.f)}）`:''}</div>`}).join('')||'<p><small>還沒有交易紀錄。</small></p>';
 if(M.dataset.h!=h){M.innerHTML=h;M.dataset.h=h}
 if(ch)chart($('#ic')||$('#ac'),ch[0],ch[1])}
-function nav(){$('#nav').innerHTML=[["m","市場"],["h","持股"],["e","ETF"],["n","新聞"],["a","資產"],["l","紀錄"]].map(t=>`<button class="${S.tab==t[0]?'on':''}" onclick="S.tab='${t[0]}';nav();$('#main').dataset.h='';rm()">${t[1]}</button>`).join('')}
+function nav(){$('#nav').innerHTML=[["m","市場"],["h","持股"],["n","新聞"],["a","資產"],["l","紀錄"]].map(t=>`<button class="${S.tab==t[0]?'on':''}" onclick="S.tab='${t[0]}';nav();$('#main').dataset.h='';rm()">${t[1]}</button>`).join('')}
 function spb(){$('#spd').innerHTML=SPD.map(s=>`<button class="${S.spd==s?'on':''}" onclick="S.spd=${s};spb()">${s?s+'×':'⏸'}</button>`).join('')}
 function ui(){checkNews();const tv=total(),d=S.ix/S.ixc-1;$('#clk').textContent=tstr(S.t+Math.floor(S.acc))+(op()?' 🟢開盤':' 🔴休市（06:00–18:00交易）');
 $('#top').innerHTML=`<div><small>總資產（鴨幣）</small><br><b>${fm(tv)}</b> <small class="${tv>=1e6?'u':'d'}">${tv>=1e6?'+':''}${fm(tv-1e6)}</small></div><div><small>現金</small><br><b>${fm(S.cash)}</b></div><div><small>大盤指數</small><br><b>${f2(S.ix)}</b> <small class="${d>=0?'u':'d'}">${pc(d)}</small></div>`;rm();updD()}
