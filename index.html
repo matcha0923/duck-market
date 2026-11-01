@@ -177,7 +177,7 @@ if(dd==1){const n=2+(Math.random()*3|0);for(let j=0;j<n&&ot.length+j<150;j++)ipo
 const dd2=S.cs.filter(c=>!c.alive&&c.dk==0);if(dd2.length&&Math.random()<.004){const c=dd2[Math.random()*dd2.length|0];c.alive=1;c.p=c.pc=r2(5+Math.random()*20);c.hs=[c.p];c.imp=0;c.p0=c.hi=c.lo=c.p;c.ld=S.t;c.eps=r2(c.p/(8+Math.random()*27));addN(`${c.e}${c.n}完成重整，重新上市！（先前破產時的持股仍已歸零）`,'公告')}}
 function step(){S.t+=5;for(const e of ents()){const v=e.emp*eck(e)*5/2880;e.cash+=v;e.rv=(e.rv||0)+v}const m=S.t%1440;if(m>360&&m<=1080)tick();if(m==1080)close();if(m==0)day()}
 function adv(mx){let n=0;while(S.acc>=5&&n++<mx)S.acc-=5,step()}
-function catchUp(){const g=(Date.now()-S.last)/6e4;if(g>0){S.acc+=Math.min(g,86400);adv(30000)}S.last=Date.now()}
+function catchUp(){const g=(Date.now()-S.last)/6e4;if(g>0)S.acc+=Math.min(g,86400);S.last=Date.now()}
 const NW={'國際':["鴨鴨共和國與霧凇王國簽署「互不搶茶葉」協議，兩國領袖互贈茶具。","月牙灣國際氣候峰會落幕，各國承諾多種樹、少開會。","星砂島舉辦首屆國際沙雕大賽，來自12國的選手同場較勁。","跨海大橋「彩虹橋」通車，兩岸居民終於不用再搭渡輪。","國際太空總署宣布，下個月將發射第一顆「茶葉觀測衛星」。","南方群島遭遇強風，部分航班停飛，居民紛紛囤積罐頭。","雲霧山城與鴨池市結為姊妹市，將互換交通號誌上的小鴨圖案。","國際馬拉松在大榕村舉行，冠軍笑稱「是被狗追才跑那麼快」。"],
 '八卦':["#執行長被目擊在夜市排隊買雞蛋糕，網友：原來他也要排隊。","傳#員工餐廳新推「珍珠火鍋」，內部票選吵翻天。","#吉祥物玩偶被拍到在地鐵站跳舞，社群瘋傳。","#董事長在尾牙唱歌走音，全場仍熱烈鼓掌。","鄉民票選「最想去上班的公司」，#勇奪第三名。","咖啡廳裡有人聽到#員工討論加薪，旁邊的貓似乎也在偷聽。","知名主持人宣布結婚，婚禮將在熱氣球上舉行。","網紅「阿麻」直播吃遍50種便當，直呼最後一種最難吃。"],
 '教育':["教育部公布新學年課綱，增加「理財基礎」選修課。","多所大學延長圖書館開放時間，期末週全天開放。","全國中小學運動會登場，拔河比賽的觀眾比選手還激動。","鴨池大學的研究指出，每天閱讀30分鐘的學生專注力較佳。","鴨池市推出線上自學平台，上線第一週註冊破十萬人。","高中生發明「會提醒喝水的書包」，拿下科展首獎。","大學入學申請放榜，熱門科系錄取門檻略為下降。","語言學習App用戶創新高，最多人學的語言是「貓語」。"],
@@ -224,8 +224,8 @@ else if(T=='a'){const tv=total();h=`<div class="card"><b>總資產歷史（每�
 else h=S.log.map(l=>{if(l.s=='配')return`<div class="card"><small>${l.g}</small><br>公司配息 <b>${l.nm}</b>：公司配出 ${fm(l.q)}，你分得 ${fm(l.p)} 鴨幣</div>`;const i=info(l.k);return`<div class="card"><small>${l.g}</small><br>${l.s=='息'?'配息':l.s=='退'?'下市結算':l.s=='拆'?'股票分割':l.s=='購'?'被ETF買入（向你購買）':l.s=='買'?'買進':'賣出'} <b>${i.n}</b> ${l.q}股 @ ${f2(l.p)}${l.f?`（費用 ${f2(l.f)}）`:''}</div>`}).join('')||'<p><small>還沒有交易紀錄。</small></p>';
 if(M.dataset.h!=h){M.innerHTML=h;M.dataset.h=h}
 if(ch)chart($('#ic')||$('#ac'),ch[0],ch[1]);if(T=='h')pie()}
-function nav(){$('#nav').innerHTML=[["m","市場"],["h","持股"],["c","公司"],["n","新聞"],["a","資產"],["l","紀錄"]].map(t=>`<button class="${S.tab==t[0]?'on':''}" onclick="S.tab='${t[0]}';nav();$('#main').dataset.h='';rm()">${t[1]}</button>`).join('')}
-function spb(){$('#spd').innerHTML=SPD.map(s=>`<button class="${S.spd==s?'on':''}" onclick="S.spd=${s};spb()">${s?s+'×':'⏸'}</button>`).join('')}
+function renderNav(){$('#nav').innerHTML=[["m","市場"],["h","持股"],["c","公司"],["n","新聞"],["a","資產"],["l","紀錄"]].map(t=>`<button class="${S.tab==t[0]?'on':''}" onclick="S.tab='${t[0]}';renderNav();$('#main').dataset.h='';rm()">${t[1]}</button>`).join('')}
+function renderSpeed(){$('#spd').innerHTML=SPD.map(s=>`<button class="${S.spd==s?'on':''}" onclick="S.spd=${s};renderSpeed()">${s?s+'×':'⏸'}</button>`).join('')}
 function ui(){checkNews();const tv=total(),d=S.ix/S.ixc-1;$('#clk').textContent=tstr(S.t+Math.floor(S.acc))+(op()?' 🟢開盤':' 🔴休市（06:00–18:00交易）');
 $('#top').innerHTML=`<div><small>總資產（鴨幣）</small><br><b>${fm(tv)}</b> <small class="${tv>=1e6?'u':'d'}">${tv>=1e6?'+':''}${fm(tv-1e6)}</small></div><div><small>現金</small><br><b>${fm(S.cash)}</b></div><div><small>大盤指數</small><br><b>${f2(S.ix)}</b> <small class="${d>=0?'u':'d'}">${pc(d)}</small></div>`;rm();updD()}
 let DR=0;
@@ -249,9 +249,20 @@ function bt(k,buy){const i=info(k);if(!i.live)return ts('已下市，無法交�
 if(buy){const g=q*pa,fee=Math.max(1,g*FEE);if(g+fee>S.cash)return ts('現金不足');S.cash-=g+fee;const h=S.hold[k]||(S.hold[k]={q:0,c:0});h.q+=q;h.c+=g+fee;rec(k,'買',q,pa,fee)}
 else{const h=S.hold[k];if(!h||h.q<q)return ts('持股不足');const g=q*pa,fee=Math.max(1,g*FEE),tax=g*(etf?.001:.002);S.cash+=g-fee-tax;const b=h.c*q/h.q;h.c-=b;h.q-=q;if(!h.q)delete S.hold[k];rec(k,'賣',q,pa,fee+tax)}
 if(cc&&fq>0){const f=buy?1+4*fq:Math.max(.3,1-4*fq);cc.p=Math.max(.5,cc.p*f);cc.imp+=(buy?-.5:.5)*Math.abs(f-1)}chkSub();rm();ui()}
-if(!load())init();catchUp();nav();spb();ui();
+if(!load())init();
+// 先顯示導覽與速度控制，再處理離線時間，避免補進度時阻塞整個介面。
+renderNav();renderSpeed();ui();
+try{catchUp()}catch(err){console.error('離線進度更新失敗：',err);S.spd=0;renderSpeed();ts('進度更新遇到錯誤，遊戲已暫停；其他頁面仍可操作。')}
 let lt=performance.now(),ac=0;
-function loop(n){const dt=Math.min((n-lt)/1000,2);lt=n;if(S.spd){S.acc+=dt*S.spd;adv(400)}ac+=dt;if(ac>.8){ac=0;ui()}requestAnimationFrame(loop)}
+function loop(n){
+ try{
+  const dt=Math.min((n-lt)/1000,2);lt=n;
+  if(S.spd){S.acc+=dt*S.spd;adv(400)}
+  ac+=dt;if(ac>.8){ac=0;ui()}
+ }catch(err){
+  console.error('遊戲更新錯誤：',err);S.spd=0;try{renderSpeed();ts('遊戲更新遇到錯誤，已自動暫停；請先切換頁面或重新載入。')}catch(_){ }
+ }finally{requestAnimationFrame(loop)}
+}
 requestAnimationFrame(loop);setInterval(save,5000);addEventListener('pagehide',save);
-document.addEventListener('visibilitychange',()=>document.hidden?save():(catchUp(),ui()));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save();else{try{catchUp();ui()}catch(err){console.error(err);S.spd=0;renderSpeed()}}});
 </script></body></html>
