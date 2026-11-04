@@ -2,7 +2,7 @@
  * 在主程式「之後」載入。不修改遊戲規則，只做四件事：
  *  1. 追進度時分片執行，避免離線補進度卡死畫面
  *  2. 已下市很久的公司自動壓縮歷史資料，避免存檔越長越肥
- *  3. 定期檢查數值（NaN／Infinity）並修復；存檔接近上限時提醒
+ *  3. 定期檢查數值（NaN／Infinity）並修復；存檔偏大時壓縮並提醒
  *  4. 偵測「讀取存檔失敗後被自動備份的舊存檔」，詢問是否還原
  * 若此檔載入失敗，遊戲照常運作，只是少了保護。
  */
@@ -69,12 +69,12 @@
   /* 3b. 存檔大小監控（以與 💾 選單相同的算法：字元數 / 1e6 ≈ MB） */
   let warned = 0;
   function sizeCheck() {
-    const r = localStorage.getItem('duckmkt1'); if (!r) return;
-    const mb = r.length / 1e6;
-    if (mb > 3.5) { compact(true); if (typeof slim === 'function') slim(); }
-    if (mb > 4.3 && Date.now() - warned > 6e5) {
+    const D = window.DB; if (!D || !D.size) return;
+    const mb = D.size / 1e6, ls = D.mode !== 'idb', lo = ls ? 3.5 : 8, hi = ls ? 4.3 : 25;
+    if (mb > lo) { compact(true); if (typeof slim === 'function') slim(); }
+    if (mb > hi && Date.now() - warned > 6e5) {
       warned = Date.now();
-      toast('存檔已達 ' + mb.toFixed(1) + ' MB，接近瀏覽器上限，請按 💾 匯出備份');
+      toast('存檔已達 ' + mb.toFixed(1) + ' MB，' + (ls ? '接近瀏覽器上限，' : '偏大，') + '請按 💾 匯出備份');
     }
   }
 
@@ -103,14 +103,15 @@
 
   /* 4. 讀取失敗時，主程式會把舊存檔另存為 duckmkt1_lost；這裡詢問是否還原 */
   safe(() => {
-    const lost = localStorage.getItem('duckmkt1_lost');
+    const lost = window.DB && DB.lost;
     if (lost && !sessionStorage.getItem('duck_lost_asked')) {
       sessionStorage.setItem('duck_lost_asked', '1');
       setTimeout(() => {
         if (confirm('偵測到上次「讀取存檔失敗」時自動備份的舊存檔。\n要還原它嗎？（會覆蓋目前的新進度）')) {
-          localStorage.setItem('duckmkt1', lost);
-          localStorage.removeItem('duckmkt1_lost');
-          location.reload();
+          DB.replace(lost).then(r => {
+            if (r) DB.clearLost().then(() => location.reload());
+            else alert('還原失敗：瀏覽器不允許寫入存檔');
+          });
         }
       }, 1500);
     }
