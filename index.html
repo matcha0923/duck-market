@@ -314,13 +314,20 @@ return`<div class="card"><b>🔗 整合紀錄</b>${L.length?`（控股整合加�
 const spHold=m=>{const L=(m.sp||[]).filter(e=>S.cs[e.cid]);if(!L.length)return'';const c=m.id!=null?S.cs[m.id]:null,T=c?c.sh*1e6:m.tot;return`<div class="card"><b>🤝 策略夥伴互持</b><table><tr><td></td><td>公司持有對方</td><td>對方持有公司</td><td>持股市值</td></tr>${L.map(e=>{const z=S.cs[e.cid],q=e.q||0;return`<tr><td>${z.e}${z.n}${z.alive?'':'（已下市）'}</td><td>${(q/(z.sh*1e6)*100).toFixed(2)}%</td><td>${(e.ns/T*100).toFixed(2)}%</td><td>${bn(q*z.p)}</td></tr>`}).join('')}</table><small>換得的股份由公司持有、計入公司估值，你不能直接賣出；結盟結束時雙方股份一併退回。</small></div>`};
 const scard=m=>{const B=(f,bg)=>[.05,.1,.2].map(p=>`<button class="bb" style="background:${bg};min-width:64px" onclick="${f}(${p})">${Math.round(p*100)}%</button>`).join('');
 const R=(t,d,b)=>`<div style="margin-top:10px"><b>${t}</b> <small>${d}</small><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px">${b}</div></div>`;
-return`<div class="card"><b>📤 分散股權</b>${R('公開增資','上櫃／上市・公司收錢',B('seo','var(--ac)'))}${R('出售持股','你收錢・不增發新股',B('sellSh','#667'))}${R('策略夥伴','換股・換收入加成','<button class="bb" style="background:var(--ac);min-width:64px" onclick="spFind()">尋找夥伴</button>')}<p style="margin:10px 0 0"><small>公開增資：以略低於市價（折價 3%＋增資比例×20%）發行新股，總股數增加、你的持股被稀釋，募得資金進公司；與「邀請投資人」「策略夥伴」共用 30 日冷卻。出售持股：未上市公司賣給投資人（價格依估值浮動）；上櫃／上市公司以 95% 市價鉅額轉讓（不推動股價，另收 0.2% 交易稅）。策略夥伴：與其他公司互換股份，換取收入加成。比例皆為占總股數，持股不得低於該公司下限。</small></p></div>`};
+return`<div class="card"><b>📤 分散股權</b>${R('公開增資','上櫃／上市・公司收錢',B('seo','var(--ac)'))}${R('出售持股','你收錢・不增發新股',B('sellSh','#667'))}${R('策略夥伴','換股・換收入加成','<button class="bb" style="background:var(--ac);min-width:64px" onclick="spFind()">尋找夥伴</button>')}${R('股票分割','不增資、不收錢・股數增加、股價降低',[2,3,5,10,100].map(r=>`<button class="bb" style="background:#667;min-width:64px" onclick="splitMe(${r})">1拆${r}</button>`).join(''))}<p style="margin:10px 0 0"><small>公開增資：以略低於市價（折價 3%＋增資比例×20%）發行新股，總股數增加、你的持股被稀釋，募得資金進公司；與「邀請投資人」「策略夥伴」共用 30 日冷卻。出售持股：未上市公司賣給投資人（價格依估值浮動）；上櫃／上市公司以 95% 市價鉅額轉讓（不推動股價，另收 0.2% 交易稅）。策略夥伴：與其他公司互換股份，換取收入加成。比例皆為占總股數，持股不得低於該公司下限。<br>股票分割：只有上櫃／上市公司可執行，每間公司 90 個遊戲日最多一次，分割後股價不得低於 5；你、投資人、ETF、策略夥伴的持股同比例增加，持股比例與市值不變。</small></p></div>`};
 function seo(p){const m=E(),c=m.id!=null?S.cs[m.id]:null;if(!c||!c.alive||m.st==0||m.st==3)return ts('只有上櫃／上市公司可以公開增資');
 if(m.ic!=null&&S.t-m.ic<43200)return ts('距離上次增資不到 30 個遊戲日');const T=c.sh*1e6,ns=Math.round(T*p),px=r2(c.p*(1-.03-p*.2)),a=Math.round(ns*px);
 if(own(m)*T/(T+ns)<minOwn(m))return ts('增資後持股會低於下限，不能執行');
 if(!confirm('公開增資 '+p*100+'%？\n發行新股 '+fm(ns)+' 股，每股 '+f2(px)+'，募得 '+bn(a)+'；你的持股變成 '+(own(m)*T/(T+ns)*100).toFixed(1)+'%。'))return;
 m.cash+=a;c.sh+=ns/1e6;if(m.tot!=null)m.tot+=ns;c.p=Math.max(.5,c.p*(1-p*.15));c.imp-=p*.1;m.ic=S.t;
 addN(`${c.e}${c.n}辦理公開增資，發行新股 ${fm(ns)} 股（每股 ${f2(px)}），募得 ${bn(a)}。`,'公司');rm();ui()}
+function splitMe(r){const m=E(),c=m.id!=null?S.cs[m.id]:null;if(!c||!c.alive||m.st==0||m.st==3)return ts('只有上櫃／上市公司可以分割股票');
+if(m.spt!=null&&S.t-m.spt<129600)return ts('距離上次分割不到 90 個遊戲日（還差 '+Math.ceil((129600-(S.t-m.spt))/1440)+' 日）');
+if(c.p/r<5)return ts('分割後股價會低於 5，無法分割（目前 '+f2(c.p)+'）');
+if(!confirm('股票分割 1拆'+r+'？\n股價 '+f2(c.p)+' → 約 '+f2(c.p/r)+'，總股數 '+fm(c.sh*1e6)+' → '+fm(c.sh*1e6*r)+'。\n你的持股比例、公司市值都不變。'))return;
+split(c,r);if(m.tot!=null)m.tot*=r;m.inv.forEach(v=>{v.sh*=r});(m.sp||[]).forEach(e=>{e.ns*=r});
+ents().forEach(z=>(z.sp||[]).forEach(e=>{if(e.cid==c.id&&e.q)e.q*=r}));if(c.eh)Object.keys(c.eh).forEach(k=>{c.eh[k]*=r});
+if(S.of&&S.of.i==SEL)S.of=null;if(S.sof&&S.sof.i==SEL)S.sof=null;m.spt=S.t;ts('已完成 1拆'+r);$('#main').dataset.h='';rm();ui()}
 function sellSh(p){const m=E();if(m.st==3)return ts('已下市的子公司不能出售持股');const c=m.id!=null?S.cs[m.id]:null;if(c&&!c.alive)return ts('公司已下市');
 const k=c?'c'+m.id:null,T=c?c.sh*1e6:m.tot,mine=c?((S.hold[k]||{}).q||0):m.my,q=Math.floor(T*p);if(q<1||q>mine)return ts('持股不足');if((mine-q)/T<minOwn(m))return ts('出售後持股會低於下限（'+minOwn(m)*100+'%）');
 const px=c?r2(c.p*.95):cval(m)/m.tot*(.8+Math.random()*.4),a=Math.round(q*px),nm=c?'':IV[Math.random()*IV.length|0];
