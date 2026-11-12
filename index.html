@@ -374,7 +374,7 @@ L.forEach(z=>{z.c=z.g?'#999':`hsl(${z.hu} 60% 55%)`;const t=z.v/T*6.2832;x.begin
 $('#pl').innerHTML=L.map(z=>`<small><span style="color:${z.c}">●</span> ${z.n} ${(z.v/T*100).toFixed(1)}%（${fm(z.v)}）</small>`).join('<br>')}
 function ipo(m){const s=Math.random()*SEC.length|0;let n,j=0;do n=nm(s)+(j++>40?S.cs.length+'號':'');while(S.cs.some(c=>c.n==n));const c=mk(S.cs.length,n,EM[s][Math.random()*2|0],s,Math.random);c.m=m;c.p=c.pc=r2(m?8+Math.random()*37:15+Math.random()*65);if(m)c.dy*=.4;c.hs=[c.p];c.p0=c.hi=c.lo=c.p;c.ld=S.t;c.eps=r2(c.p/(8+Math.random()*27));S.cs.push(c);addN(`${m?'新上櫃':'新上市'}！${c.e}${n}（${c.id+1001}）今日掛牌，首日價 ${f2(c.p)}。`,'公告')}
 function up(c){c.m=0;c.up=S.t;c.imp+=.04;addN(`${c.e}${c.n}通過審核，由上櫃升級為上市！`,'公告')}
-function day(){const d=new Date(START+S.t*6e4),mo=d.getUTCMonth(),dd=d.getUTCDate(),al=S.cs.filter(c=>c.alive);
+function day(){const d=new Date(START+S.t*6e4),mo=d.getUTCMonth(),dd=d.getUTCDate(),al=S.cs.filter(c=>c.alive);if(window.TERR&&TERR.day)TERR.day(dd);
 if(dd==1)S.cs.forEach(c=>{if(c.alive&&(c.me||c.pl))etfBuy(c)});
 if(dd==1&&(mo==0||mo==6)){S.rg=newRg();addN('各地區的資源、交通與政策係數已更新（每半年一次）。','公司')}
 if(dd==1)newEvt();if(dd==1)spTick();
@@ -438,7 +438,7 @@ else if(T=='e')h=ETFS.map(e=>row('e'+e.k,`成分股 ${cons(e).length} 檔`)).joi
 else if(T=='n')h=S.news.map(n=>`<div class="card"><small>${n.tag}・${n.g}</small><br>${n.h}</div>`).join('')||'<p><small>目前沒有新聞。</small></p>';
 else if(T=='r')h=lbh();
 else if(T=='a'){const tv=total();h=`<div class="card"><b>總資產歷史（每日收盤）</b><canvas id="ac"></canvas><small>起始 1,000,000　目前 ${fm(tv)}（${pc(tv/1e6-1)}）</small></div><button onclick="if(confirm('確定重置所有進度？')){DB.wipe().then(r=>r?location.reload():ts('重置失敗，請稍後再試'))}">重置遊戲</button>`;const a=S.ah.map(x=>x[1]);a.unshift(1e6);a.push(tv);ch=[a,tv>=1e6]}
-else h=S.log.map(l=>{if(l.s=='配')return`<div class="card"><small>${l.g}</small><br>公司配息 <b>${l.nm}</b>：公司配出 ${fm(l.q)}，你分得 ${fm(l.p)} 鴨幣</div>`;const i=info(l.k);return`<div class="card"><small>${l.g}</small><br>${l.s=='息'?'配息':l.s=='退'?'下市結算':l.s=='拆'?'股票分割':l.s=='購'?'被ETF買入（向你購買）':l.s=='買'?'買進':'賣出'} <b>${i.n}</b> ${l.q}股 @ ${f2(l.p)}${l.f?`（費用 ${f2(l.f)}）`:''}</div>`}).join('')||'<p><small>還沒有交易紀錄。</small></p>';
+else h=S.log.map(l=>{if(l.s=='稅')return`<div class="card"><small>${l.g}</small><br>領地稅收：${l.q} 處領地，你收到 <b>${bn(l.p)}</b> 鴨幣</div>`;if(l.s=='配')return`<div class="card"><small>${l.g}</small><br>公司配息 <b>${l.nm}</b>：公司配出 ${fm(l.q)}，你分得 ${fm(l.p)} 鴨幣</div>`;const i=info(l.k);return`<div class="card"><small>${l.g}</small><br>${l.s=='息'?'配息':l.s=='退'?'下市結算':l.s=='拆'?'股票分割':l.s=='購'?'被ETF買入（向你購買）':l.s=='買'?'買進':'賣出'} <b>${i.n}</b> ${l.q}股 @ ${f2(l.p)}${l.f?`（費用 ${f2(l.f)}）`:''}</div>`}).join('')||'<p><small>還沒有交易紀錄。</small></p>';
 if(M.dataset.h!=h){M.innerHTML=h;M.dataset.h=h}
 if(ch)chart($('#ic')||$('#ac'),ch[0],ch[1]);if(T=='h')pie()}
 function renderNav(){$('#nav').innerHTML=[["m","市場"],["h","持股"],["c","公司"]].concat(window.TERR?[["t","領地"]]:[],[["n","新聞"],["a","資產"],["r","排行"],["l","紀錄"]]).map(t=>`<button class="${S.tab==t[0]?'on':''}" onclick="S.tab='${t[0]}';renderNav();$('#main').dataset.h='';rm()">${t[1]}</button>`).join('')}
